@@ -1,0 +1,61 @@
+# Importing libraries
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+import os
+for dirname, _, filenames in os.walk('/kaggle/input'):
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+
+# Loading data
+train_data = pd.read_csv("/kaggle/input/titanic/train.csv")
+test_data = pd.read_csv("/kaggle/input/titanic/test.csv")
+
+# Exploring train data
+train_data.shape
+#there are 891 obs and 12 variables
+train_data.info()
+#Age has (891-714) null values; Cabin has (891-204) null values; Embarked has 2 null values.
+train_data.isnull().sum()
+#to check the above
+train_data.describe()
+#there are more youg people than old, avg age is 30y, 75% perc is 38y; 
+#there are more 3rd class people, at 50% perc is already 3rd;
+#very few relations of siblings, spouses, parents and children
+train_data.describe(include='all')
+#to add non numeric variables
+#there are 577 males, 891-577 females
+
+# Model suggested by Kaggle 
+from sklearn.ensemble import RandomForestClassifier
+
+y1 = train_data["Survived"]
+
+features1 = ["Pclass", "Sex", "SibSp", "Parch"]
+X1 = pd.get_dummies(train_data[features1])
+X_test1 = pd.get_dummies(test_data[features1])
+
+model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
+model.fit(X1, y1)
+predictions = model.predict(X_test1)
+
+# My analysis 
+#creating a boolean var for Sex
+train_data['SexMF'] = train_data['Sex'].map({'male': '0', 'female': '1'})
+test_data['SexMF'] = test_data['Sex'].map({'male': '0', 'female': '1'})
+train_data['SexMF'] = pd.to_numeric(train_data['SexMF'], errors='coerce')
+test_data['SexMF'] = pd.to_numeric(test_data['SexMF'], errors='coerce')
+
+from sklearn.ensemble import RandomForestClassifier
+
+y = train_data["Survived"]
+features = ["Pclass", "SexMF", "Age", "SibSp", "Parch"]
+X = (train_data[features])
+X_test = (test_data[features])
+
+#Age has NaN values and therefore cannot fit the model. 
+#Options: Drop NaN; Imputation; Feature Engineering; Drop Age.
+
+model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
+model.fit(X, y)
+predictions = model.predict(X_test)
